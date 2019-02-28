@@ -1,0 +1,613 @@
+---
+title: "Assignment 1: Clustering"
+author: "Harshit Gupta ~ hrgupta"
+date: "February 07, 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("lintr")
+```
+
+
+First we will load the required libraries. We will make use of `NLP` , `tm` , `fpc` , `cluster` , `RColorBrewer` and `text2vec` libraries in R.
+
+
+```{r warning=FALSE}
+library("NLP")
+library("tm")
+library("RColorBrewer")
+library("fpc")
+library("cluster")
+library("text2vec")
+```
+
+
+We load all the 16 Accounts Tweets from the file and preprocess the data to remove punctuation, numbers, special characters and white spaces.
+
+
+```{r warning=FALSE}
+cname <- file.path("C:\\Health-News-Tweets\\Health-Tweets")
+
+tweetsData = VCorpus(DirSource(cname))
+
+tweetsData <- tm_map(tweetsData, content_transformer(tolower))
+tweetsData <- tm_map(tweetsData, content_transformer(function(x)gsub(x, pattern = "http.*\\W", replacement =  "")))
+tweetsData <- tm_map(tweetsData, content_transformer(function(x)gsub(x, pattern = "/", replacement =  "")))
+tweetsData <- tm_map(tweetsData, content_transformer(function(x)gsub(x, pattern = "\\|", replacement =  "")))
+tweetsData <- tm_map(tweetsData, removePunctuation)
+tweetsData <- tm_map(tweetsData, removeNumbers)
+tweetsData <- tm_map(tweetsData, stripWhitespace)
+```
+
+
+Now we will plot the probabilities of the most frequent words for each account.
+
+
+### 1. For Account: BBC Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[1])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v), freq = v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 3, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for BBC Health",
+        ylab = "Probabilities")
+```
+
+### 2. For Account: CBC Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[2])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for CBC Health",
+        ylab = "Probabilities")
+```
+
+### 3. For Account: CNN Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[3])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing = TRUE)
+d <- data.frame(word = names(v),freq = v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for CNN Health",
+        ylab = "Probabilities")
+```
+
+### 4. For Account: Everyday Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[4])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Everyday Health",
+        ylab = "Probabilities")
+```
+
+### 5. For Account: Fox News Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[5])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v),freq = v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Fox News Health",
+        ylab = "Probabilities")
+```
+
+### 6. For Account: GDN Healthcare
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[6])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v), freq = v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for GDN Healthcare",
+        ylab = "Probabilities")
+```
+
+### 7. For Account: Good Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[7])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Good Health",
+        ylab = "Probabilities")
+```
+
+### 8. For Account: Kaiser Health News
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[8])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Kaiser Health News",
+        ylab = "Probabilities")
+```
+
+### 9. For Account: LA Times Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[9])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for LA Times Health",
+        ylab = "Probabilities")
+```
+
+### 10. For Account: MSN Health News
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[10])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for MSN Health News",
+        ylab = "Probabilities")
+```
+
+### 11. For Account: NBC Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[11])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for NBC Health",
+        ylab = "Probabilities")
+```
+
+### 12. For Account: NPR Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[12])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for NPR Health",
+        ylab = "Probabilities")
+```
+
+### 13. For Account: NY Times Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[13])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for NY Times Health",
+        ylab = "Probabilities")
+```
+
+### 14. For Account: Reuters Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[14])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Reuters Health",
+        ylab = "Probabilities")
+```
+
+### 15. For Account: US News Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[15])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for US News Health",
+        ylab = "Probabilities")
+```
+
+### 16. For Account: WSJ Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[16])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for WSJ Health",
+        ylab = "Probabilities")
+```
+
+As can be seen from the above barcharts, the most common words in the tweets are the days of the week, months or most common english words ie. stopwords which are not related to heath. To imporve the results, we need to clean the dataset to remove unwanted data. We will make use of `stopwords()` function from the `tm` library to remove the most common stopwords and manually remove the other data we find to be unwanted.
+
+```{r warning = FALSE}
+
+tweetsData <- tm_map(tweetsData, removeWords, stopwords("english"))
+tweetsData <- tm_map(tweetsData, removeWords,c("jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"))
+tweetsData <- tm_map(tweetsData, removeWords,c("mon","tue","wed","thu","fri","sat","sun","video","audio"))
+```
+
+We will now observe the effects of the additional cleaning on the tweets of BBC Health.
+
+### 1. For Account: BBC Health
+
+```{r warning = FALSE}
+dtm <- TermDocumentMatrix(tweetsData[1])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v), freq = v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = rev(brewer.pal(10, "Set1")), main ="10 most common words for BBC Health",
+        ylab = "Probabilities")
+```
+
+As can be seen from the above barchart, the most common words now are now related to health. We will now plot the **Top 10** words for the other accounts.
+
+### 2. For Account: CBC Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[2])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for CBC Health",
+        ylab = "Probabilities")
+```
+
+### 3. For Account: CNN Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[3])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing = TRUE)
+d <- data.frame(word = names(v),freq = v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for CNN Health",
+        ylab = "Probabilities")
+```
+
+### 4. For Account: Everyday Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[4])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Everyday Health",
+        ylab = "Probabilities")
+```
+
+### 5. For Account: Fox News Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[5])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v),freq = v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Fox News Health",
+        ylab = "Probabilities")
+```
+
+### 6. For Account: GDN Healthcare
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[6])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v), freq = v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for GDN Healthcare",
+        ylab = "Probabilities")
+```
+
+### 7. For Account: Good Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[7])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Good Health",
+        ylab = "Probabilities")
+```
+
+### 8. For Account: Kaiser Health News
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[8])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Kaiser Health News",
+        ylab = "Probabilities")
+```
+
+### 9. For Account: LA Times Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[9])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for LA Times Health",
+        ylab = "Probabilities")
+```
+
+### 10. For Account: MSN Health News
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[10])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for MSN Health News",
+        ylab = "Probabilities")
+```
+
+### 11. For Account: NBC Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[11])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for NBC Health",
+        ylab = "Probabilities")
+```
+
+### 12. For Account: NPR Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[12])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for NPR Health",
+        ylab = "Probabilities")
+```
+
+### 13. For Account: NY Times Health
+
+```{r warning=FALSE}
+dtm1 <- TermDocumentMatrix(tweetsData)
+m <- as.matrix(dtm1)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for NY Times Health",
+        ylab = "Probabilities")
+```
+
+### 14. For Account: Reuters Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[14])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for Reuters Health",
+        ylab = "Probabilities")
+```
+
+### 15. For Account: US News Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[15])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = brewer.pal(10, "Paired"), main ="10 most common words for US News Health",
+        ylab = "Probabilities")
+```
+
+### 16. For Account: WSJ Health
+
+```{r warning=FALSE}
+dtm <- TermDocumentMatrix(tweetsData[16])
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+barplot(d[1:10,]$freq/sum(d$freq), las = 2, names.arg = d[1:10,]$word,
+        col = rev(brewer.pal(10, "Paired")), main ="10 most common words for WSJ Health",
+        ylab = "Probabilities")
+```
+
+Based on the above output, we can  observe more health realted words showing up in all the accounts after data cleaning.
+
+Now, we will now merge the tweets from all the account and cluster them using **k-means** clustering algorithm. 
+
+We will cluster the tweets using two methods:
+
+* Using the distance between words frequencies in Document Term Matrix
+* Using the distance between word vectors using Glove embeddings
+
+### Using distance between Document Term Matrix
+
+
+Initially we will choose **k = 16** as the number of clusters. Also we will use *Euclidean* metric to find the distance between the words.
+
+```{r warning=FALSE}
+dtm <- DocumentTermMatrix(tweetsData)
+dtms <- removeSparseTerms(dtm, 0.05)
+dic = findFreqTerms(dtms, lowfreq = 600)
+ctrl <- list(dictionary = dic)
+dtmd <- DocumentTermMatrix(tweetsData, control = ctrl)
+kd <- dist(t(dtmd), method = "maximum")
+kfit <- kmeans(kd, 16)
+clusplot(as.matrix(kd), kfit$cluster, color = T, shade = T, labels = 2, lines = 5)
+```
+
+
+As we can observe there are a lot of clusters with two words and most of the words have been concentrated in one region. Naturally, the number of clusters can be reduced. We will now look for the value **k = 3**. Also, we will be using *maximum* metric to find the distance between the words.
+
+```{r warning=FALSE}
+dic = findFreqTerms(dtms, lowfreq = 600)
+ctrl <- list(dictionary = dic)
+dtmd <- DocumentTermMatrix(tweetsData, control = ctrl)
+kd <- dist(t(dtmd), method = "maximum")
+kfit <- kmeans(kd, 3)
+clusplot(as.matrix(kd), kfit$cluster, color = T, shade = T, labels = 2, lines = 5)
+```
+
+As we can see the clusters are still not well defined. So we look for the *euclidean* distance.
+
+```{r warning=FALSE}
+dic = findFreqTerms(dtms, lowfreq = 600)
+ctrl <- list(dictionary = dic)
+dtmd <- DocumentTermMatrix(tweetsData, control = ctrl)
+kd <- dist(t(dtmd), method = "euclidean")
+kfit <- kmeans(kd, 3)
+clusplot(as.matrix(kd), kfit$cluster, color = T, shade = T, labels = 2, lines = 5)
+```
+
+As can be seen from the above output, the *euclidean* distance does give us some well defined clusters. Now, we will use word embeddings to cluster the words. we will be using GLOVE algorithm for generating the word vectors. 
+
+Word embeddings work by generating word vectors from the text corpus which encode the context of those words and also the similarity between them. Here we will be training our own word vectors using the vocabulary in our tweets.
+
+We will be using `text2vec` library to generate word embeddings. We will generate the vocabulary from our corpus and them train our word embeedings using that vocabulary. Initially we will keep the dimensions of the word vectors at *50*.
+
+### Using distance between word vectors
+
+
+```{r warning=FALSE}
+tokens <- space_tokenizer(tweetsData)
+it = itoken(tokens, progressbar = FALSE)
+vocab = create_vocabulary(it)
+vocab = prune_vocabulary(vocab, term_count_min = 5L)
+vectorizer = vocab_vectorizer(vocab)
+tcm = create_tcm(it, vectorizer, skip_grams_window = 5L)
+glove = GlobalVectors$new(word_vectors_size = 50, vocabulary = vocab, x_max = 10)
+wv_main = glove$fit_transform(tcm, n_iter = 10, convergence_tol = 0.01)
+wv_context = glove$components
+word_vectors = wv_main + t(wv_context)
+```
+
+The word vectors are now generated. we wil now cluster the most frequent words in our corpus. Here we will again use the *euclidean* distance to cluster the words.
+
+```{r warning=FALSE}
+newdtm <- TermDocumentMatrix(tweetsData, control = list(wordLengths = c(4, Inf)))
+newdtms <- removeSparseTerms(newdtm, 0.05)
+dic = findFreqTerms(newdtms, lowfreq = 600)
+
+word_vectors <- word_vectors[dic,]
+wkd <- dist(word_vectors, method = "euclidean")
+wkfit <- kmeans(wkd, 3)
+clusplot(as.matrix(wkd), wkfit$cluster, color = T, shade = T, labels = 2, lines = 5)
+```
+
+As we can see from the above output, word embeedings gives us a much better word clustering than the previous approach. We will now test for the *100* dimensions word embeddings..
+
+```{r warning=FALSE}
+tokens <- space_tokenizer(tweetsData)
+it = itoken(tokens, progressbar = FALSE)
+vocab = create_vocabulary(it)
+vocab = prune_vocabulary(vocab, term_count_min = 5L)
+vectorizer = vocab_vectorizer(vocab)
+tcm = create_tcm(it, vectorizer, skip_grams_window = 8L)
+
+glove = GlobalVectors$new(word_vectors_size = 100, vocabulary = vocab, x_max = 10)
+wv_main = glove$fit_transform(tcm, n_iter = 10, convergence_tol = 0.01)
+wv_context = glove$components
+word_vectors = wv_main + t(wv_context)
+
+newdtm <- TermDocumentMatrix(tweetsData, control = list(wordLengths = c(4, Inf)))
+newdtms <- removeSparseTerms(newdtm, 0.05)
+dic = findFreqTerms(newdtms, lowfreq = 600)
+
+word_vectors <- word_vectors[dic,]
+wkd <- dist(word_vectors, method = "euclidean")
+wkfit <- kmeans(wkd, 3)
+clusplot(as.matrix(wkd), wkfit$cluster, color = T, shade = T, labels = 2, lines = 5)
+```
+
+We get a better output. So we will keep our word dimensions to *100*. Lastly, we will use *manhattan* distance metric to measure the distance between the words.
+
+```{r warning=FALSE}
+tokens <- space_tokenizer(tweetsData)
+it = itoken(tokens, progressbar = FALSE)
+vocab = create_vocabulary(it)
+vocab = prune_vocabulary(vocab, term_count_min = 5L)
+vectorizer = vocab_vectorizer(vocab)
+tcm = create_tcm(it, vectorizer, skip_grams_window = 8L)
+
+glove = GlobalVectors$new(word_vectors_size = 100, vocabulary = vocab, x_max = 10)
+wv_main = glove$fit_transform(tcm, n_iter = 10, convergence_tol = 0.01)
+wv_context = glove$components
+word_vectors = wv_main + t(wv_context)
+
+newdtm <- TermDocumentMatrix(tweetsData, control = list(wordLengths = c(4, Inf)))
+newdtms <- removeSparseTerms(newdtm, 0.05)
+dic = findFreqTerms(newdtms, lowfreq = 500)
+
+word_vectors = wv_main + t(wv_context)
+word_vectors <- word_vectors[dic,]
+wkd <- dist(word_vectors, method = "manhattan")
+wkfit <- kmeans(wkd, 3)
+clusplot(as.matrix(wkd), wkfit$cluster, color = T, shade = T, labels = 2, lines = 5)
+```
+
+The manhattan distance gives us by far the most well defined cluster. So we accept this as our final cluster.
